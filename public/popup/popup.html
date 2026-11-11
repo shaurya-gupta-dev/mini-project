@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AegisLLM Privacy Shield</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <span class="brand-title">AegisLLM</span>
+        <span class="version-tag">v1.0.0</span>
+      </div>
+      <div class="status-indicator" id="statusBadge">
+        <span class="status-dot"></span>
+        <span class="status-text">Protected</span>
+      </div>
+    </header>
+
+    <!-- Session Metrics Summary -->
+    <section class="summary-strip">
+      <div class="metric-cell">
+        <span class="metric-value text-alert" id="secretsCount">0</span>
+        <span class="metric-label">Secrets Blocked</span>
+      </div>
+      <div class="metric-divider"></div>
+      <div class="metric-cell">
+        <span class="metric-value" id="promptsCount">0</span>
+        <span class="metric-label">Prompts Guarded</span>
+      </div>
+      <div class="metric-divider"></div>
+      <div class="metric-cell">
+        <span class="metric-value text-accent" id="latencyStat">&lt; 0.25 ms</span>
+        <span class="metric-label">P50 Latency</span>
+      </div>
+    </section>
+
+    <!-- Threat Breakdown (Compact Row) -->
+    <div class="category-summary-row">
+      <span class="cat-chip">API Keys <strong id="catApiKeys">0</strong></span>
+      <span class="cat-chip">Private Keys <strong id="catPrivateKeys">0</strong></span>
+      <span class="cat-chip">DB URLs <strong id="catDbUrls">0</strong></span>
+      <span class="cat-chip">Cards <strong id="catCards">0</strong></span>
+      <span class="cat-chip">PII <strong id="catPii">0</strong></span>
+      <span class="cat-chip">Entropy <strong id="catEntropy">0</strong></span>
+    </div>
+
+    <!-- Live Test Sandbox -->
+    <section class="tool-section">
+      <div class="section-row">
+        <span class="section-title">Test Redaction Pipeline</span>
+        <span id="scanTimer" class="scan-timing hidden"></span>
+      </div>
+      <div class="input-wrapper">
+        <textarea id="simInput" class="sim-textarea" rows="2" placeholder="Paste test prompt or API key..."></textarea>
+      </div>
+      <div class="tool-actions">
+        <button id="btnScan" class="btn-primary">Scan Prompt</button>
+        <button id="btnOpenDashboard" class="btn-secondary">Open Full Audit Log &rarr;</button>
+      </div>
+
+      <div id="simResults" class="sim-results-pane hidden">
+        <div class="results-header">
+          <span class="results-label">Detected Entities:</span>
+          <div id="simEntities" class="entities-list"></div>
+        </div>
+        <div class="preview-block">
+          <div class="preview-label">Cloud View (Redacted):</div>
+          <pre id="simRedacted" class="preview-code"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Interceptions Feed -->
+    <section class="audit-section">
+      <div class="section-row">
+        <span class="section-title">Recent Interceptions</span>
+        <button id="btnClear" class="btn-text-action">Reset</button>
+      </div>
+      <div id="activityLog" class="activity-feed">
+        <div class="empty-state">No secrets detected in current sessions. Chats are secure.</div>
+      </div>
+    </section>
+
+    <!-- Minimalist Footer -->
+    <footer class="app-footer">
+      <span class="footer-meta">100% Deterministic On-Device Math</span>
+      <span class="footer-meta">S3 Rule Pack v1.0.0 Verified</span>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

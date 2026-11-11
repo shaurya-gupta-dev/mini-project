@@ -1,0 +1,23 @@
+{
+  "name": "aegis-llm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first privacy firewall for LLMs: deterministic client-side redaction and reversible unmasking.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && esbuild src/extension/content.ts --bundle --format=iife --outfile=dist/content.js --target=es2022 && esbuild src/extension/interceptor.ts --bundle --format=iife --outfile=dist/interceptor.js --target=es2022 && esbuild src/extension/popup/popup.ts --bundle --format=esm --outfile=dist/popup/popup.js --target=es2022 && esbuild src/extension/dashboard/dashboard.ts --bundle --format=esm --outfile=dist/dashboard/dashboard.js --target=es2022 && node scripts/sync_manifest.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "benchmark": "vitest run tests/benchmark.test.ts",
+    "pack": "npm run build && node scripts/pack_extension.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "happy-dom": "^21.0.4",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.8"
+  }
+}

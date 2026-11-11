@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AegisLLM Zero-Plaintext Telemetry & Feedback Pipeline
+  Ingests anonymized user action decisions (Replace vs Keep) to tune detector thresholds.
+  Guarantees zero raw prompt text or credentials ever enter AWS infrastructure.
+
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 256
+    Runtime: nodejs20.x
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        TELEMETRY_TABLE: !Ref AegisTelemetryTable
+        CORS_ALLOW_ORIGIN: '*'
+
+Resources:
+  # ---------------------------------------------------------------------------
+  # DynamoDB Table: Aggregated Anonymized User Decision Counters
+  # ---------------------------------------------------------------------------
+  AegisTelemetryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AegisTelemetry
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: detectorType_date
+          AttributeType: S
+        - AttributeName: userAction
+          AttributeType: S
+      KeySchema:
+        - AttributeName: detectorType_date
+          KeyType: HASH
+        - AttributeName: userAction
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: AegisLLM
+        - Key: Environment
+          Value: Production
+
+  # ---------------------------------------------------------------------------
+  # Lambda Function: Ingestion & Schema Enforcer
+  # ---------------------------------------------------------------------------
+  AegisTelemetryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: aegis-telemetry-ingestion
+      Description: Ingests anonymized telemetry events and updates atomic decision counters in DynamoDB.
+      CodeUri: ../src/aws/
+      Handler: telemetry_handler.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AegisTelemetryTable
+      Events:
+        RecordEvent:
+          Type: Api
+          Properties:
+            Path: /telemetry/event
+            Method: POST
+            RestApiId: !Ref AegisTelemetryApi
+
+  # ---------------------------------------------------------------------------
+  # API Gateway with Strict Schema & CORS
+  # ---------------------------------------------------------------------------
+  AegisTelemetryApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+
+Outputs:
+  TelemetryApiUrl:
+    Description: Ingestion HTTP endpoint for extension client
+    Value: !Sub "https://${AegisTelemetryApi}.execute-api.${AWS::Region}.amazonaws.com/prod/telemetry/event"
+  TelemetryTableName:
+    Description: DynamoDB Table Name
+    Value: !Ref AegisTelemetryTable
+

@@ -1,0 +1,37 @@
+# Dependencies & Build Outputs
+node_modules/
+dist/
+coverage/
+*.log
+
+# OS & Environment
+.DS_Store
+Thumbs.db
+.env
+.env.*
+
+# AI Agent Workflow, Governance & Working Ledgers (Non-runtime)
+/agents.md
+/AGENTS.md
+/architecture.md
+/build_log.md
+/collaboration.md
+/cto-initialization.md
+/debug_audit_log.md
+/guide_study.md
+/project_history.md
+/quality_checklist.md
+/roadmap.md
+/tasks.md
+/benchmark_results.md
+
+# Development Scratch, Test Artifacts & Miscellaneous Archive
+/miscellaneous/
+.playwright-mcp/
+/test_bench.html
+/*.png
+
+# Local Private Signing Keys (Never push private keys)
+/keys/
+
+

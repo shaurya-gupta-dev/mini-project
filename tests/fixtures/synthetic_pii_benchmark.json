@@ -1,0 +1,287 @@
+{
+  "version": "1.0.0",
+  "description": "Synthetic PII & Secrets Evaluation Benchmark for AegisLLM vs Amazon Comprehend",
+  "samples": [
+    {
+      "id": "sample-01",
+      "category": "api_key",
+      "text": "Please use my OpenAI key sk-proj-ab12cd34ef56gh78ij90kl12mn34op56qr78 to generate the report.",
+      "expectedTypes": ["OPENAI_API_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-02",
+      "category": "api_key",
+      "text": "The Anthropic credentials are sk-ant-api03-abcdef1234567890abcdef1234567890 for testing.",
+      "expectedTypes": ["ANTHROPIC_API_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-03",
+      "category": "api_key",
+      "text": "AWS_ACCESS_KEY_ID is AKIAIOSFODNN7EXAMPLE and please configure the bucket.",
+      "expectedTypes": ["AWS_ACCESS_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-04",
+      "category": "api_key",
+      "text": "Authenticate to git using ghp_11223344556677889900aabbccddeeff1234 on branch main.",
+      "expectedTypes": ["GITHUB_TOKEN"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-05",
+      "category": "api_key",
+      "text": "Initialize the Maps client with AIzaSyD-1234567890abcdefghijklmnopqrstuv in production.",
+      "expectedTypes": ["GOOGLE_API_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-06",
+      "category": "financial",
+      "text": "Charge the subscription to Visa card 4532015112830366 expiring next month.",
+      "expectedTypes": ["CREDIT_CARD"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-07",
+      "category": "financial",
+      "text": "Mastercard number 5425233430109903 requires a refund immediately.",
+      "expectedTypes": ["CREDIT_CARD"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-08",
+      "category": "financial",
+      "text": "Billing customer on Amex 378282246310005 for service renewal.",
+      "expectedTypes": ["CREDIT_CARD"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-09",
+      "category": "national_id",
+      "text": "Tax filing document for employee with Indian PAN ABCDE1234F attached.",
+      "expectedTypes": ["INDIAN_PAN"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-10",
+      "category": "national_id",
+      "text": "Aadhaar verification request for 3675 9834 6012 submitted for KYC.",
+      "expectedTypes": ["INDIAN_AADHAAR"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-11",
+      "category": "national_id",
+      "text": "Social security verification for US citizen SSN 000-12-3456 in payroll.",
+      "expectedTypes": ["US_SSN"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-12",
+      "category": "pii",
+      "text": "Send the confidential quarterly report to security-lead@corporation.co.uk today.",
+      "expectedTypes": ["EMAIL"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-13",
+      "category": "pii",
+      "text": "Internal alerts email is configured to devops.alerts+staging@cloud-startup.io.",
+      "expectedTypes": ["EMAIL"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-14",
+      "category": "network",
+      "text": "Connect database proxy to external interface 198.51.100.42 port 5432.",
+      "expectedTypes": ["IPV4_ADDRESS"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-15",
+      "category": "network",
+      "text": "Firewall inbound traffic rule applies to host 203.0.113.195 with strict TLS.",
+      "expectedTypes": ["IPV4_ADDRESS"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-16",
+      "category": "high_entropy",
+      "text": "Database root connection string includes password Xk9#mP$2vL8*zQ1!wR4^tY7&jN3~bV0.",
+      "expectedTypes": ["HIGH_ENTROPY_SECRET"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-17",
+      "category": "high_entropy",
+      "text": "Session HMAC encryption key: 4f9b2c8e1a7d3f5b8a0c2e4f6a8b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b.",
+      "expectedTypes": ["HIGH_ENTROPY_SECRET"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-18",
+      "category": "multi_entity",
+      "text": "User dev.admin@company.com deployed AWS key AKIAIOSFODNN7EXAMPLE to IP 192.0.2.146.",
+      "expectedTypes": ["EMAIL", "AWS_ACCESS_KEY", "IPV4_ADDRESS"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-19",
+      "category": "multi_entity",
+      "text": "Contact john.doe@fintech.in with PAN ABCDE9876Z regarding card 4111111111111111.",
+      "expectedTypes": ["EMAIL", "INDIAN_PAN", "CREDIT_CARD"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-20",
+      "category": "multi_entity",
+      "text": "Setup OpenAI sk-proj-1234567890abcdef12345678 and GitHub ghp_000000000000000000000000000000000000.",
+      "expectedTypes": ["OPENAI_API_KEY", "GITHUB_TOKEN"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-21",
+      "category": "hard_negative",
+      "text": "The commit hash was 7b8a9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b for the release.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-22",
+      "category": "hard_negative",
+      "text": "Database generated record UUID 550e8400-e29b-41d4-a716-446655440000 in postgres.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-23",
+      "category": "hard_negative",
+      "text": "The calculation result is: Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)).",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-24",
+      "category": "hard_negative",
+      "text": "Please summarize the main plot points of Shakespeare's Macbeth in bullet points.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-25",
+      "category": "hard_negative",
+      "text": "Explain the difference between synchronous and asynchronous execution in Node.js.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-26",
+      "category": "hard_negative",
+      "text": "Write a recursive merge sort algorithm in TypeScript with strict typing.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-27",
+      "category": "hard_negative",
+      "text": "The server responded with HTTP status code 404 Not Found for resource /users/123.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-28",
+      "category": "hard_negative",
+      "text": "CSS property grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) creates responsive layout.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-29",
+      "category": "hard_negative",
+      "text": "Docker container stopped with exit code 137 due to OOM killer.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-30",
+      "category": "hard_negative",
+      "text": "function calculateMonthlyCompoundInterest(principal: number, annualRate: number) { return principal; }",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-31",
+      "category": "checksum_negative",
+      "text": "Test with fake card 4111111111111112 which fails Luhn checksum check.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-32",
+      "category": "checksum_negative",
+      "text": "Invalid Aadhaar number 1234 5678 9012 fails Verhoeff multiplication group table.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-33",
+      "category": "api_key",
+      "text": "Primary Anthropic token sk-ant-api03-99887766554433221100aabbccddeeff for Claude 3.5 Sonnet.",
+      "expectedTypes": ["ANTHROPIC_API_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-34",
+      "category": "api_key",
+      "text": "Use Google Vision API key AIzaSyA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q in backend worker.",
+      "expectedTypes": ["GOOGLE_API_KEY"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-35",
+      "category": "national_id",
+      "text": "Verify corporate PAN number AAACP1234M for tax exemption certificate.",
+      "expectedTypes": ["INDIAN_PAN"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-36",
+      "category": "pii",
+      "text": "Email customer escalation to billing-disputes@enterprise-fintech.org promptly.",
+      "expectedTypes": ["EMAIL"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-37",
+      "category": "hard_negative",
+      "text": "Git branch feature/JIRA-4829-upgrade-react-router-v7 merged into staging.",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-38",
+      "category": "hard_negative",
+      "text": "const sha256Checksum = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';",
+      "expectedTypes": [],
+      "hasSecret": false
+    },
+    {
+      "id": "sample-39",
+      "category": "financial",
+      "text": "Mastercard transaction auth code for 5105105105105100 approved by bank.",
+      "expectedTypes": ["CREDIT_CARD"],
+      "hasSecret": true
+    },
+    {
+      "id": "sample-40",
+      "category": "api_key",
+      "text": "Configure AWS IAM session key ASIAIOSFODNN7EXAMPLE with temporary STS token.",
+      "expectedTypes": ["AWS_ACCESS_KEY"],
+      "hasSecret": true
+    }
+  ]
+}
+
