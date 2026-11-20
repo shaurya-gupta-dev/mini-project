@@ -161,6 +161,34 @@ describe('AWS DynamoDB & Lambda Zero-Plaintext Telemetry Pipeline', () => {
       expect(parsedRes.detectorType).toBe('CREDIT_CARD');
       expect(parsedRes.feedbackLoop).toBe('active');
     });
+
+    it('supports API Gateway HTTP API v2 requestContext.http.method and extended detector types', async () => {
+      const updateItemMock = vi.fn().mockResolvedValue({});
+      const preflightRes = await handler({
+        requestContext: { http: { method: 'OPTIONS' } },
+        body: null,
+      });
+      expect(preflightRes.statusCode).toBe(204);
+
+      for (const detectorType of ['PASSWORD', 'DATABASE_URL', 'HUGGINGFACE_TOKEN', 'IPV4']) {
+        const res = await handler(
+          {
+            requestContext: { http: { method: 'POST' } },
+            body: JSON.stringify({
+              detectorType,
+              userAction: 'KEPT',
+              confidence: 0.92,
+              clientTimestamp: Date.now() - 500,
+            }),
+          },
+          { updateItem: updateItemMock }
+        );
+        expect(res.statusCode).toBe(200);
+        expect(JSON.parse(res.body).detectorType).toBe(detectorType);
+      }
+
+      expect(updateItemMock).toHaveBeenCalledTimes(4);
+    });
   });
 });
 

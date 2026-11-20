@@ -57,7 +57,7 @@ Resources:
     Properties:
       FunctionName: aegis-telemetry-ingestion
       Description: Ingests anonymized telemetry events and updates atomic decision counters in DynamoDB.
-      CodeUri: ../src/aws/
+      CodeUri: ./lambda/
       Handler: telemetry_handler.handler
       Policies:
         - DynamoDBCrudPolicy:

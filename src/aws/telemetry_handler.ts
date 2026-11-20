@@ -16,9 +16,18 @@ export interface TelemetryEventPayload {
 }
 
 export interface APIGatewayEventLike {
-  httpMethod: string;
+  httpMethod?: string | undefined;
+  requestContext?:
+    | {
+        http?:
+          | {
+              method?: string | undefined;
+            }
+          | undefined;
+      }
+    | undefined;
   body: string | null;
-  headers?: Record<string, string | undefined>;
+  headers?: Record<string, string | undefined> | undefined;
 }
 
 export interface APIGatewayResponseLike {
@@ -61,20 +70,30 @@ const ALLOWED_DETECTOR_TYPES = new Set([
   'OPENAI_API_KEY',
   'ANTHROPIC_API_KEY',
   'AWS_ACCESS_KEY',
+  'AWS_SECRET_KEY',
   'GITHUB_TOKEN',
   'GOOGLE_API_KEY',
   'SLACK_TOKEN',
   'STRIPE_KEY',
+  'HUGGINGFACE_TOKEN',
+  'GITLAB_TOKEN',
+  'DATABASE_URL',
+  'PRIVATE_KEY',
+  'JWT_TOKEN',
+  'PASSWORD',
   'CREDIT_CARD',
   'INDIAN_PAN',
   'INDIAN_AADHAAR',
   'US_SSN',
+  'SSN',
   'EMAIL',
+  'PHONE_NUMBER',
+  'IPV4',
+  'IPV6',
   'IPV4_ADDRESS',
   'IPV6_ADDRESS',
   'HIGH_ENTROPY_SECRET',
   'GENERIC_API_KEY',
-  'PASSWORD',
 ]);
 
 /**
@@ -192,8 +211,44 @@ export function buildDynamoDBUpdateParams(
   };
 }
 
+interface AwsDynamoSdkModule {
+  DynamoDBClient: new (config: Record<string, never>) => {
+    send: (command: unknown) => Promise<unknown>;
+  };
+  UpdateItemCommand: new (input: DynamoDBUpdateItemInput) => unknown;
+}
+
+let cachedDynamoDbClient: { updateItem: (params: DynamoDBUpdateItemInput) => Promise<unknown> } | null = null;
+
 /**
- * Standard AWS Lambda Handler for API Gateway integration.
+ * Resolves the built-in AWS SDK v3 DynamoDB client inside AWS Lambda Node.js runtime.
+ */
+async function getDefaultDynamoDbClient(): Promise<{
+  updateItem: (params: DynamoDBUpdateItemInput) => Promise<unknown>;
+}> {
+  if (cachedDynamoDbClient) {
+    return cachedDynamoDbClient;
+  }
+
+  const awsDynamoModule = '@aws-sdk/client-dynamodb';
+  const sdk = (await import(awsDynamoModule)) as AwsDynamoSdkModule;
+  const client = new sdk.DynamoDBClient({});
+
+  cachedDynamoDbClient = {
+    updateItem: (params: DynamoDBUpdateItemInput) => client.send(new sdk.UpdateItemCommand(params)),
+  };
+  return cachedDynamoDbClient;
+}
+
+/**
+ * Extracts HTTP method across API Gateway REST v1, HTTP API v2, and Lambda Function URLs.
+ */
+function extractHttpMethod(event: APIGatewayEventLike): string {
+  return (event.httpMethod || event.requestContext?.http?.method || '').toUpperCase();
+}
+
+/**
+ * Standard AWS Lambda Handler for API Gateway / Function URL integration.
  */
 export async function handler(
   event: APIGatewayEventLike,
@@ -206,11 +261,13 @@ export async function handler(
     'Access-Control-Allow-Headers': 'Content-Type,X-Api-Key',
   };
 
-  if (event.httpMethod === 'OPTIONS') {
+  const method = extractHttpMethod(event);
+
+  if (method === 'OPTIONS') {
     return { statusCode: 204, headers, body: '' };
   }
 
-  if (event.httpMethod !== 'POST') {
+  if (method !== 'POST') {
     return {
       statusCode: 405,
       headers,
@@ -250,8 +307,14 @@ export async function handler(
   const updateParams = buildDynamoDBUpdateParams(validation.payload, tableName);
 
   try {
-    if (dynamoDbClient) {
-      await dynamoDbClient.updateItem(updateParams);
+    const runningInLambda = Boolean(
+      process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV
+    );
+    const activeClient =
+      dynamoDbClient ?? (runningInLambda ? await getDefaultDynamoDbClient() : null);
+
+    if (activeClient) {
+      await activeClient.updateItem(updateParams);
     }
   } catch (err) {
     console.error('[Telemetry] DynamoDB update failed:', err);

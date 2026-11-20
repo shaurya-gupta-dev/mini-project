@@ -391,6 +391,42 @@ html, body {
   letter-spacing: 0.05em;
 }
 
+.aws-config-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.aws-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.aws-url-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-main);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  outline: none;
+}
+
+.aws-url-input:focus {
+  border-color: var(--border-focus);
+}
+
+.aws-actions-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Simulator Elements */
 .sim-actions-header {
   display: flex;

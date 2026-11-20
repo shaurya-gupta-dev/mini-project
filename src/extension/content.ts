@@ -177,8 +177,10 @@ function scanEditorPrompt(): void {
 
 // 7. Gatekeeper Action Handlers
 function handleGatekeeperAllowAll(secrets: DetectedSecretItem[]): void {
+  const allowedTypes: string[] = [];
   for (const s of secrets) {
     allowedSecretsSet.add(s.raw);
+    allowedTypes.push(s.type);
     try {
       window.postMessage(
         { source: 'AEGIS_ISOLATED_WORLD', type: 'SECRET_ALLOWED', raw: s.raw },
@@ -187,6 +189,10 @@ function handleGatekeeperAllowAll(secrets: DetectedSecretItem[]): void {
     } catch {
       // Ignore
     }
+  }
+
+  if (allowedTypes.length > 0) {
+    notifyTelemetryDecision('KEPT', allowedTypes);
   }
 
   annotator.updateSecrets(currentDetectedItems, allowedSecretsSet);
@@ -321,6 +327,24 @@ function notifyBackground(entityTypes: string[]): void {
         type: 'AEGIS_SECRETS_REDACTED',
         count: entityTypes.length,
         platform: adapter.name,
+        entityTypes,
+        sessionId: SESSION_ID,
+      });
+    }
+  } catch {
+    // Background worker may be cycling
+  }
+}
+
+function notifyTelemetryDecision(
+  userAction: 'REDACTED' | 'KEPT',
+  entityTypes: string[]
+): void {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'AEGIS_TELEMETRY_DECISION',
+        userAction,
         entityTypes,
         sessionId: SESSION_ID,
       });

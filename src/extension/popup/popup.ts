@@ -101,6 +101,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshTelemetry();
 
+  const footerAwsStatus = document.getElementById('footerAwsStatus');
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({ type: 'GET_AWS_STATUS' }, (response) => {
+        const st = response?.status;
+        if (footerAwsStatus && st) {
+          if (st.rulesSource === 's3' && st.signatureVerified) {
+            footerAwsStatus.innerText = `S3 v${st.rulesVersion || '1.0.0'} Verified`;
+          } else if (st.telemetryConfigured) {
+            footerAwsStatus.innerText = 'AWS Telemetry Connected';
+          } else {
+            footerAwsStatus.innerText = 'Bundled Rules (Local)';
+          }
+        }
+      });
+    }
+  } catch {
+    // Ignore outside Chrome extension runtime
+  }
+
   // Reset telemetry
   if (btnClear) {
     btnClear.addEventListener('click', () => {

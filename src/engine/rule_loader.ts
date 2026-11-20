@@ -5,7 +5,7 @@
  * Falls back safely to bundled defaults on network or signature failure.
  */
 
-import bundledPubKey from './rule_signing_pubkey.json' assert { type: 'json' };
+import bundledPubKey from './rule_signing_pubkey.json';
 
 export interface RuleDefinition {
   id: string;
@@ -157,14 +157,23 @@ export async function verifyRulePackSignature(
   }
 }
 
+export interface LoadedRulePackResult {
+  pack: RulePack;
+  source: 's3' | 'cache' | 'bundled';
+  signatureVerified: boolean;
+  syncedAt: number;
+  rulePackUrl: string;
+}
+
 /**
- * Loads the active rule pack:
- * 1. Checks memory/storage cache
- * 2. Attempts fetch from S3 if online
- * 3. Verifies ECDSA digital signature
- * 4. Falls back to bundled defaults on any failure
+ * Loads the active rule pack along with verification provenance:
+ * 1. Checks memory/storage cache / attempts fetch from S3 if online
+ * 2. Verifies ECDSA digital signature
+ * 3. Falls back to bundled defaults on any failure
  */
-export async function loadRulePack(options: RuleLoaderOptions = {}): Promise<RulePack> {
+export async function loadRulePackWithSource(
+  options: RuleLoaderOptions = {}
+): Promise<LoadedRulePackResult> {
   const rulePackUrl = options.rulePackUrl || DEFAULT_S3_RULES_URL;
   const signatureUrl = options.signatureUrl || DEFAULT_S3_SIG_URL;
   const pubKey = options.pubKeyJwk || (bundledPubKey as unknown as JsonWebKey);
@@ -198,7 +207,13 @@ export async function loadRulePack(options: RuleLoaderOptions = {}): Promise<Rul
               // Cache failure is non-fatal
             }
             console.log(`[RuleLoader] Loaded and verified remote rule pack v${parsed.version} (${parsed.rules.length} rules)`);
-            return parsed;
+            return {
+              pack: parsed,
+              source: 's3',
+              signatureVerified: true,
+              syncedAt: Date.now(),
+              rulePackUrl,
+            };
           }
         } else {
           console.warn('[RuleLoader] Signature verification failed for remote rule pack! Rejecting update.');
@@ -221,7 +236,13 @@ export async function loadRulePack(options: RuleLoaderOptions = {}): Promise<Rul
         if (isValid) {
           const parsed = JSON.parse(cached[CACHE_STORAGE_KEY]!);
           if (validateRulePack(parsed)) {
-            return parsed;
+            return {
+              pack: parsed,
+              source: 'cache',
+              signatureVerified: true,
+              syncedAt: Date.now(),
+              rulePackUrl,
+            };
           }
         }
       }
@@ -231,7 +252,21 @@ export async function loadRulePack(options: RuleLoaderOptions = {}): Promise<Rul
   }
 
   // 3. Fallback: bundled default fallback
-  return getBundledDefaultRulePack();
+  return {
+    pack: getBundledDefaultRulePack(),
+    source: 'bundled',
+    signatureVerified: false,
+    syncedAt: Date.now(),
+    rulePackUrl,
+  };
+}
+
+/**
+ * Loads the active rule pack (returning just the RulePack object).
+ */
+export async function loadRulePack(options: RuleLoaderOptions = {}): Promise<RulePack> {
+  const res = await loadRulePackWithSource(options);
+  return res.pack;
 }
 
 /**

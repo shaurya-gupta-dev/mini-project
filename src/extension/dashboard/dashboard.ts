@@ -193,12 +193,144 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const awsOverallBadge = document.getElementById('awsOverallBadge');
+  const infraDynamoStatus = document.getElementById('infraDynamoStatus');
+  const infraDynamoCode = document.getElementById('infraDynamoCode');
+  const infraS3Status = document.getElementById('infraS3Status');
+  const infraS3Code = document.getElementById('infraS3Code');
+  const inputS3RulesUrl = document.getElementById('inputS3RulesUrl') as HTMLInputElement | null;
+  const inputTelemetryUrl = document.getElementById('inputTelemetryUrl') as HTMLInputElement | null;
+  const btnAwsSync = document.getElementById('btnAwsSync');
+
+  interface AwsStatusResponse {
+    config?: {
+      s3RulesUrl?: string;
+      telemetryEndpointUrl?: string;
+    };
+    status?: {
+      rulesSource?: 's3' | 'cache' | 'bundled';
+      rulesVersion?: string;
+      rulesCount?: number;
+      signatureVerified?: boolean;
+      lastRuleError?: string | null;
+      telemetryConfigured?: boolean;
+      lastTelemetryStatus?: string;
+      totalCloudEventsSent?: number;
+    };
+  }
+
+  function renderAwsStatus(data: AwsStatusResponse): void {
+    const cfg = data.config;
+    const st = data.status;
+
+    if (inputS3RulesUrl && cfg?.s3RulesUrl && !cfg.s3RulesUrl.includes('aegis-llm-rules.s3.amazonaws.com')) {
+      inputS3RulesUrl.value = cfg.s3RulesUrl;
+    }
+    if (inputTelemetryUrl && cfg?.telemetryEndpointUrl && !cfg.telemetryEndpointUrl.includes('api.aegisllm.com')) {
+      inputTelemetryUrl.value = cfg.telemetryEndpointUrl;
+    }
+
+    if (st) {
+      const s3Live = st.rulesSource === 's3' && st.signatureVerified;
+      const cacheLive = st.rulesSource === 'cache' && st.signatureVerified;
+
+      if (infraS3Status) {
+        infraS3Status.className = `infra-status ${s3Live || cacheLive ? 'text-emerald' : 'text-alert'}`;
+        infraS3Status.innerText = s3Live ? 'VERIFIED (S3)' : cacheLive ? 'VERIFIED (CACHE)' : 'BUNDLED';
+      }
+      if (infraS3Code) {
+        infraS3Code.innerText = s3Live
+          ? `v${st.rulesVersion || '1.0.0'} (${st.rulesCount ?? 0} rules, ECDSA P-256 OK)`
+          : st.lastRuleError || 'Bundled Defaults Active';
+      }
+
+      if (infraDynamoStatus) {
+        infraDynamoStatus.className = `infra-status ${st.telemetryConfigured ? 'text-emerald' : 'text-alert'}`;
+        infraDynamoStatus.innerText = st.telemetryConfigured ? 'CONNECTED' : 'UNCONFIGURED';
+      }
+      if (infraDynamoCode) {
+        const sent = st.totalCloudEventsSent ?? 0;
+        infraDynamoCode.innerText = st.telemetryConfigured
+          ? `${st.lastTelemetryStatus || 'Ready'} (${sent} cloud events)`
+          : st.lastTelemetryStatus || 'Awaiting API Gateway URL';
+      }
+
+      if (awsOverallBadge) {
+        const bothLive = s3Live && st.telemetryConfigured;
+        awsOverallBadge.className = `panel-meta ${bothLive ? 'text-emerald' : 'text-alert'}`;
+        awsOverallBadge.innerText = bothLive
+          ? 'Live AWS Connected'
+          : st.telemetryConfigured || s3Live
+            ? 'Partial AWS Sync'
+            : 'Local Fallback Mode';
+      }
+    }
+  }
+
+  function fetchAwsStatus(): void {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ type: 'GET_AWS_STATUS' }, (response) => {
+          if (response) {
+            renderAwsStatus(response as AwsStatusResponse);
+          }
+        });
+      } else {
+        renderAwsStatus({
+          status: {
+            rulesSource: 'bundled',
+            rulesVersion: '1.0.0-bundled',
+            signatureVerified: false,
+            lastRuleError: 'Open extension runtime to sync S3',
+            telemetryConfigured: false,
+            lastTelemetryStatus: 'Standalone Preview',
+          },
+        });
+      }
+    } catch {
+      // Ignore outside Chrome extension runtime
+    }
+  }
+
   fetchTelemetry();
+  fetchAwsStatus();
 
   // Refresh Button
   if (btnRefresh) {
     btnRefresh.addEventListener('click', () => {
       fetchTelemetry();
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+          chrome.runtime.sendMessage({ type: 'SYNC_AWS_RULES' }, (response) => {
+            if (response) renderAwsStatus(response as AwsStatusResponse);
+          });
+        }
+      } catch {
+        // Ignore
+      }
+    });
+  }
+
+  if (btnAwsSync) {
+    btnAwsSync.addEventListener('click', () => {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+          chrome.runtime.sendMessage(
+            {
+              type: 'SAVE_AWS_CONFIG',
+              config: {
+                s3RulesUrl: inputS3RulesUrl?.value?.trim() || undefined,
+                telemetryEndpointUrl: inputTelemetryUrl?.value?.trim() || undefined,
+              },
+            },
+            (response) => {
+              if (response) renderAwsStatus(response as AwsStatusResponse);
+            }
+          );
+        }
+      } catch {
+        // Ignore
+      }
     });
   }
 

@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "benchmark": "vitest run tests/benchmark.test.ts",
     "pack": "npm run build && node scripts/pack_extension.js",
+    "build:aws": "node scripts/build_aws_bundle.js",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

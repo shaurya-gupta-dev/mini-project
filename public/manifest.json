@@ -58,5 +58,8 @@
   "permissions": [
     "storage"
   ],
+  "host_permissions": [
+    "https://*.amazonaws.com/*"
+  ],
   "options_page": "dashboard/dashboard.html"
 }

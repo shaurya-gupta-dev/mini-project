@@ -131,7 +131,7 @@
         <div class="panel-box">
           <div class="panel-header">
             <h2 class="panel-title">AWS Architecture & Verification Mesh</h2>
-            <span class="panel-meta text-emerald">Verified</span>
+            <span class="panel-meta" id="awsOverallBadge">Checking AWS...</span>
           </div>
 
           <div class="infra-list">
@@ -140,9 +140,9 @@
               <div class="infra-body">
                 <div class="infra-name">Amazon DynamoDB & AWS Lambda</div>
                 <div class="infra-desc">Anonymized, privacy-preserving event counts (Zero prompt data leaves client).</div>
-                <div class="infra-code">Table: <code>AegisLLM-TelemetryEvents</code></div>
+                <div class="infra-code">Table: <code>AegisTelemetry</code> &middot; <code id="infraDynamoCode">Awaiting AWS Deploy</code></div>
               </div>
-              <span class="infra-status text-emerald">SYNCED</span>
+              <span class="infra-status text-muted" id="infraDynamoStatus">PENDING</span>
             </div>
 
             <div class="infra-item">
@@ -150,19 +150,29 @@
               <div class="infra-body">
                 <div class="infra-name">Dynamic S3 Signed Rule Packs</div>
                 <div class="infra-desc">ECDSA P-256 WebCrypto cryptographically signed regex & entropy rule sets.</div>
-                <div class="infra-code">Version: <code>rules.v1.json (Active)</code></div>
+                <div class="infra-code">Source: <code id="infraS3Code">Bundled Fallback</code></div>
               </div>
-              <span class="infra-status text-emerald">VERIFIED</span>
+              <span class="infra-status text-muted" id="infraS3Status">BUNDLED</span>
             </div>
 
             <div class="infra-item">
               <div class="infra-badge">INFRA 3</div>
               <div class="infra-body">
                 <div class="infra-name">Amazon Comprehend Comparative Benchmark</div>
-                <div class="infra-desc">Validated 100% precision & recall against cloud NLP benchmark baselines.</div>
-                <div class="infra-code">Automated Suite: <code>189/189 Tests Passing</code></div>
+                <div class="infra-desc">Validated 100% precision & recall against baseline cloud NLP vectors.</div>
+                <div class="infra-code">Automated Suite: <code>196+ Automated Tests</code></div>
               </div>
               <span class="infra-status text-alert">100% F1</span>
+            </div>
+          </div>
+
+          <div class="aws-config-bar">
+            <div class="aws-input-row">
+              <input id="inputS3RulesUrl" class="aws-url-input" type="url" placeholder="S3 Rules URL (https://...s3.../rules.v1.json)" />
+              <input id="inputTelemetryUrl" class="aws-url-input" type="url" placeholder="API Gateway URL (https://...execute-api.../prod/telemetry/event)" />
+            </div>
+            <div class="aws-actions-row">
+              <button id="btnAwsSync" class="btn-subtle">Save &amp; Sync AWS</button>
             </div>
           </div>
         </div>
